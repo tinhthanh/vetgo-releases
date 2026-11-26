@@ -17,16 +17,17 @@ Each release is tagged `vglink-v<version>` and lists the SHA-256 of every file.
 The Vetgo app's **Settings → Plugins** reads `index.json` from the `registry`
 release. A plugin is listed by its newest published release tagged
 `<id>-v<version>` that has `<id>-<version>.tar.gz` (its `<id>/` folder, with
-`berth-plugin.json` giving that version) and, ideally, a `.sha256` beside it.
-`.github/workflows/plugin-registry.yml` writes the listing again whenever such a
-release is published (or by hand: Actions → Plugin listing → Run workflow).
+`berth-plugin.json` giving that version), or one archive per platform,
+`<id>-<version>-<os>-<arch>.tar.gz` (a Mac's may be `darwin-universal`), each
+ideally with a `.sha256` beside it. A computer is offered only its own build.
 
-## Vetgo Phone Desktop, in short
+| Plugin | Source | How it gets here |
+| --- | --- | --- |
+| vglink | tinhthanh/vglink (private) | its release workflow publishes `vglink-v*` here |
+| mobile | tinhthanh/mobile-mcp | its `berth-mobile` workflow publishes `mobile-v*` here |
+| chrome | tinhthanh/open-browser-use | released there as `shipyard-plugin-v*`; mirrored here hourly (`mirrors.json`) |
+| computer | tinhthanh/open-codex-computer-use | released there from a Mac (`scripts/release-shipyard-plugin.sh`, signed); mirrored here hourly |
 
-1. Run the installer (Windows SmartScreen may warn: *More info* → *Run anyway*; the
-   installer isn't signed yet).
-2. On the phone: turn on **Developer options → USB debugging**, plug it into the
-   computer, tap **Allow**.
-3. The app fetches adb, installs Vetgo Phone on the phone, grants it what it needs
-   and connects. Texts, calls, app chats and the journal are then in the app; it keeps
-   running in the tray and starts with Windows.
+`.github/workflows/plugin-registry.yml` mirrors and writes the listing again
+every hour, whenever a release here is published, and by hand (Actions →
+Plugin listing → Run workflow).

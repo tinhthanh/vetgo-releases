@@ -1,16 +1,25 @@
 # Keeps the plugin listing the Vetgo app browses (Settings → Plugins) in step
-# with the releases here: when a plugin's release (<id>-v<version>) is
-# published, index.json on the "registry" release is written again from all of
-# them by scripts/plugin-registry.py (a copy of tinhthanh/shipyard's).
+# with the plugins' releases:
 #
-# A release published with this repository's own GITHUB_TOKEN starts no
-# workflow; one published with a personal token or by hand does. Run it by hand
-# (Actions → Plugin listing → Run workflow) after one that didn't.
+# 1. scripts/mirror-plugins.py copies here the newest release of each plugin
+#    released in its own repository (mirrors.json: chrome, computer), as
+#    <id>-v<version>, when it isn't here yet.
+# 2. scripts/plugin-registry.py (a copy of tinhthanh/shipyard's) writes
+#    index.json on the "registry" release from every <id>-v<version> here.
+#
+# It runs every hour (for the mirrors, whose repositories have no token for
+# this one), when a release here is published, edited or deleted (vglink and
+# mobile publish here themselves, with a personal token, which starts it), and
+# by hand: Actions → Plugin listing → Run workflow. Releases made with this
+# repository's own token start no workflow, so the mirror's are listed by the
+# step after it, in the same run.
 name: Plugin listing
 
 on:
   release:
     types: [published, edited, deleted]
+  schedule:
+    - cron: "17 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -23,13 +32,17 @@ concurrency:
 jobs:
   listing:
     # The listing's own release is not a plugin.
-    if: github.event_name == 'workflow_dispatch' || github.event.release.tag_name != 'registry'
+    if: github.event_name != 'release' || github.event.release.tag_name != 'registry'
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
+      - name: Mirror plugins released elsewhere
+        # A source that fails is reported; the listing is still written.
+        continue-on-error: true
+        run: python3 -I scripts/mirror-plugins.py --repo "$GITHUB_REPOSITORY"
       - name: Write and upload index.json
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: python3 -I scripts/plugin-registry.py --repo "$GITHUB_REPOSITORY" --out "$RUNNER_TEMP/index.json" --upload
       - name: Show it
         run: cat "$RUNNER_TEMP/index.json"

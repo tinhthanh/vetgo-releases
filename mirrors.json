@@ -1,0 +1,6 @@
+{
+  "mirrors": [
+    {"id": "chrome", "repo": "tinhthanh/open-browser-use", "tag_prefix": "shipyard-plugin-v"},
+    {"id": "computer", "repo": "tinhthanh/open-codex-computer-use", "tag_prefix": "shipyard-plugin-v"}
+  ]
+}

@@ -12,6 +12,15 @@ holds the published builds (see **Releases**).
 
 Each release is tagged `vglink-v<version>` and lists the SHA-256 of every file.
 
+## Plugin listing
+
+The Vetgo app's **Settings → Plugins** reads `index.json` from the `registry`
+release. A plugin is listed by its newest published release tagged
+`<id>-v<version>` that has `<id>-<version>.tar.gz` (its `<id>/` folder, with
+`berth-plugin.json` giving that version) and, ideally, a `.sha256` beside it.
+`.github/workflows/plugin-registry.yml` writes the listing again whenever such a
+release is published (or by hand: Actions → Plugin listing → Run workflow).
+
 ## Vetgo Phone Desktop, in short
 
 1. Run the installer (Windows SmartScreen may warn: *More info* → *Run anyway*; the

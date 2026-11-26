@@ -1,0 +1,35 @@
+# Keeps the plugin listing the Vetgo app browses (Settings → Plugins) in step
+# with the releases here: when a plugin's release (<id>-v<version>) is
+# published, index.json on the "registry" release is written again from all of
+# them by scripts/plugin-registry.py (a copy of tinhthanh/shipyard's).
+#
+# A release published with this repository's own GITHUB_TOKEN starts no
+# workflow; one published with a personal token or by hand does. Run it by hand
+# (Actions → Plugin listing → Run workflow) after one that didn't.
+name: Plugin listing
+
+on:
+  release:
+    types: [published, edited, deleted]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: plugin-registry
+  cancel-in-progress: false
+
+jobs:
+  listing:
+    # The listing's own release is not a plugin.
+    if: github.event_name == 'workflow_dispatch' || github.event.release.tag_name != 'registry'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Write and upload index.json
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 -I scripts/plugin-registry.py --repo "$GITHUB_REPOSITORY" --out "$RUNNER_TEMP/index.json" --upload
+      - name: Show it
+        run: cat "$RUNNER_TEMP/index.json"
